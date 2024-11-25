@@ -449,6 +449,10 @@ if __name__ == '__main__':
 
     # Define the path/file for the DuckDB database file.
     from pathlib import Path
+    # Configure the folder 'data' as a subfolder of where this script is located. 
+    folder = Path(Path.cwd()).joinpath(f"data/")
+    if not folder.is_dir(): folder.mkdir()
+    if not folder.is_dir(): raise Exception(f"Folder not found {folder}")
     path_file_db = Path(Path.cwd()).joinpath(f"data/local_data_storage_sys.duckdb")
     path_file_metadata = Path(Path.cwd()).joinpath(f"data/local_data_storage_sys.json")
 
