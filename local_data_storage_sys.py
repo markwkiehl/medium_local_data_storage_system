@@ -20,9 +20,10 @@ logging.info("Script start..")
 
 # Define the script version in terms of Semantic Versioning (SemVer)
 # when Git or other versioning systems are not employed.
-__version__ = "0.0.0"
+__version__ = "0.0.1"
 from pathlib import Path
 print(f"'{Path(__file__).stem}.py'\tv{__version__}\n")
+# 0.0.1     Added get_db_table_col_names()
 
 
 """
@@ -272,6 +273,40 @@ def get_db_table_names(path_file_db=None, verbose=False):
                 print(conn.sql(f"SELECT * FROM '{table[0]}'").show())
 
     return table_names
+
+
+def get_db_table_col_names(path_file_db=None, table_name=None, column_names_only=True, verbose=False):
+    """
+    Returns a list of the DuckDB db table column names or the column schema information for table 'table_name' from path_file_db.
+    column_names_only=False will cause the column schema (name, type, allow_null, key, default, extra) to be returned as a dictionary. 
+
+    column_names = get_db_table_col_names(path_file_db, 'nps', column_names_only=True)
+    column_schemas = get_db_table_col_names(path_file_db, 'nps', column_names_only=False)
+    """
+    from pathlib import Path
+
+    # pip install duckdb
+    import duckdb
+
+    if not isinstance(path_file_db, Path): raise Exception(f"path_file_db is not a pathlib Path()  {path_file_db}")
+    if not path_file_db.is_file(): raise Exception(f"File not found {path_file_db}")
+    if not isinstance(column_names_only,bool): raise Exception("Argument 'column_names_only' must be bool")
+
+    column_schemas = []
+    column_names = []
+    if verbose: print(f"DuckDB columns for table {table_name}:")
+    with duckdb.connect(database=path_file_db) as conn:  
+        rows = conn.execute(f"DESCRIBE SELECT * FROM '{table_name}';").fetchall()
+        for row in rows:
+            column_schemas.append({"column_name": row[0], "data_type": row[1], "allow_null": row[2], "key": row[3], "default": row[4], "extra": row[5]})
+            column_names.append(row[0])
+
+    if column_names_only:
+        return column_names
+    else:
+        return column_schemas
+
+
 
 
 def query_db_tables(path_file_db=None, verbose=True):
